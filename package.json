@@ -1,0 +1,173 @@
+{
+  "name": "webwork-preview",
+  "displayName": "WeBWorK Preview",
+  "description": "Live preview of WeBWorK .pg problem files with multi-seed testing",
+  "version": "0.1.4",
+  "publisher": "westminster-math",
+  "license": "GPL-3.0-or-later",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ejauch/webwork-preview.git"
+  },
+  "bugs": {
+    "url": "https://github.com/ejauch/webwork-preview/issues"
+  },
+  "homepage": "https://github.com/ejauch/webwork-preview#readme",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Other",
+    "Education"
+  ],
+  "activationEvents": [
+    "onLanguage:pg",
+    "workspaceContains:**/*.pg"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "languages": [
+      {
+        "id": "pg",
+        "aliases": [
+          "WeBWorK PG",
+          "pg"
+        ],
+        "extensions": [
+          ".pg"
+        ],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "pg",
+        "scopeName": "source.pg",
+        "path": "./syntaxes/pg.tmLanguage.json",
+        "embeddedLanguages": {
+          "meta.embedded.inline.perl.pgml.pg": "perl"
+        }
+      }
+    ],
+    "commands": [
+      {
+        "command": "webwork-preview.showPreview",
+        "title": "WeBWorK: Show Preview",
+        "icon": "$(open-preview)"
+      },
+      {
+        "command": "webwork-preview.showPreviewToSide",
+        "title": "WeBWorK: Show Preview to the Side",
+        "icon": "$(open-preview)"
+      },
+      {
+        "command": "webwork-preview.rerollSeed",
+        "title": "WeBWorK: Render with Random Seed"
+      },
+      {
+        "command": "webwork-preview.setSeed",
+        "title": "WeBWorK: Set Seed..."
+      },
+      {
+        "command": "webwork-preview.showSeedGrid",
+        "title": "WeBWorK: Test Multiple Seeds (Grid)"
+      },
+      {
+        "command": "webwork-preview.checkRenderer",
+        "title": "WeBWorK: Check Renderer Connection"
+      }
+    ],
+    "menus": {
+      "editor/title": [
+        {
+          "command": "webwork-preview.showPreviewToSide",
+          "when": "resourceLangId == pg || resourceExtname == .pg",
+          "group": "navigation"
+        }
+      ],
+      "commandPalette": [
+        {
+          "command": "webwork-preview.showPreview",
+          "when": "resourceLangId == pg || resourceExtname == .pg"
+        },
+        {
+          "command": "webwork-preview.showPreviewToSide",
+          "when": "resourceLangId == pg || resourceExtname == .pg"
+        },
+        {
+          "command": "webwork-preview.rerollSeed",
+          "when": "resourceLangId == pg || resourceExtname == .pg"
+        },
+        {
+          "command": "webwork-preview.setSeed",
+          "when": "resourceLangId == pg || resourceExtname == .pg"
+        },
+        {
+          "command": "webwork-preview.showSeedGrid",
+          "when": "resourceLangId == pg || resourceExtname == .pg"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "WeBWorK Preview",
+      "properties": {
+        "webworkPreview.rendererUrl": {
+          "type": "string",
+          "default": "http://localhost:3000",
+          "description": "URL of the local WeBWorK PG renderer service."
+        },
+        "webworkPreview.defaultSeed": {
+          "type": "number",
+          "default": 1234,
+          "description": "Default seed used when opening a preview."
+        },
+        "webworkPreview.autoRefreshOnSave": {
+          "type": "boolean",
+          "default": true,
+          "description": "Re-render the preview automatically when the .pg file is saved."
+        },
+        "webworkPreview.autoRefreshOnEdit": {
+          "type": "boolean",
+          "default": false,
+          "description": "Re-render the preview while typing (debounced). Slower but more interactive."
+        },
+        "webworkPreview.editDebounceMs": {
+          "type": "number",
+          "default": 600,
+          "description": "Debounce delay for autoRefreshOnEdit, in milliseconds."
+        },
+        "webworkPreview.gridSeedCount": {
+          "type": "number",
+          "default": 12,
+          "description": "Number of seeds to render in the multi-seed grid."
+        },
+        "webworkPreview.gridSeedStart": {
+          "type": "number",
+          "default": 1,
+          "description": "First seed used in the multi-seed grid (sequential from this value)."
+        },
+        "webworkPreview.darkMode": {
+          "type": "boolean",
+          "default": false,
+          "description": "Apply a dark color scheme to rendered problem content (Dark Reader-style: re-colors backgrounds, text, borders, and MathJax math; preserves embedded images on light backings)."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "package": "vsce package"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "@types/vscode": "^1.85.0",
+    "@vscode/vsce": "^2.22.0",
+    "typescript": "^5.3.0"
+  },
+  "dependencies": {
+    "vscode-oniguruma": "^2.0.1",
+    "vscode-textmate": "^9.3.2"
+  }
+}

@@ -1,0 +1,460 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "name": "WeBWorK PG",
+  "scopeName": "source.pg",
+  "fileTypes": ["pg"],
+  "patterns": [
+    { "include": "#comments" },
+    { "include": "#pod" },
+    { "include": "#document-structure" },
+    { "include": "#pgml-block" },
+    { "include": "#text-block" },
+    { "include": "#solution-block" },
+    { "include": "#hint-block" },
+    { "include": "#load-macros" },
+    { "include": "#answer-checkers" },
+    { "include": "#mathobject-constructors" },
+    { "include": "#context-calls" },
+    { "include": "#pg-builtins" },
+    { "include": "#perl-keywords" },
+    { "include": "#strings" },
+    { "include": "#heredoc" },
+    { "include": "#numbers" },
+    { "include": "#variables" },
+    { "include": "#operators" },
+    { "include": "#function-calls" }
+  ],
+  "repository": {
+    "comments": {
+      "patterns": [
+        {
+          "name": "comment.line.number-sign.pg",
+          "match": "#.*$"
+        }
+      ]
+    },
+
+    "pod": {
+      "comment": "Perl POD blocks; rarely used in problems but valid PG.",
+      "begin": "^=(pod|head[1-4]|over|item|back|begin|end|for|cut)\\b",
+      "end": "^=cut\\b",
+      "name": "comment.block.documentation.pg"
+    },
+
+    "document-structure": {
+      "comment": "DOCUMENT(), ENDDOCUMENT(), and the boilerplate that anchors every .pg file.",
+      "patterns": [
+        {
+          "match": "\\b(DOCUMENT|ENDDOCUMENT|BEGIN_PROBLEM|END_PROBLEM)\\s*\\(\\s*\\)\\s*;?",
+          "name": "keyword.control.document.pg"
+        },
+        {
+          "match": "\\b(TEXT|HEADER_TEXT|PG_restricted_eval|MODES)\\b(?=\\s*\\()",
+          "name": "keyword.other.pg-structure.pg"
+        }
+      ]
+    },
+
+    "load-macros": {
+      "comment": "loadMacros(\"...\") — highlight specially because every problem has one.",
+      "begin": "\\b(loadMacros)\\s*\\(",
+      "beginCaptures": {
+        "1": { "name": "support.function.macro-loader.pg" }
+      },
+      "end": "\\)",
+      "patterns": [
+        { "include": "#strings" },
+        { "include": "#comments" },
+        {
+          "match": ",",
+          "name": "punctuation.separator.pg"
+        }
+      ]
+    },
+
+    "pgml-block": {
+      "comment": "PGML — the primary way to write problem text in modern PG. Embed light formatting markup.",
+      "begin": "^(BEGIN_PGML(?:_SOLUTION|_HINT)?)\\b",
+      "beginCaptures": {
+        "1": { "name": "keyword.control.pgml.begin.pg" }
+      },
+      "end": "^(END_PGML(?:_SOLUTION|_HINT)?)\\b",
+      "endCaptures": {
+        "1": { "name": "keyword.control.pgml.end.pg" }
+      },
+      "name": "meta.embedded.block.pgml.pg",
+      "patterns": [
+        { "include": "#pgml-content" }
+      ]
+    },
+
+    "pgml-content": {
+      "patterns": [
+        {
+          "comment": "PGML variable/answer rule interpolation: [$var], [_____], [@ ... @], [: math :], [% comment %], [! image !]",
+          "match": "\\[(?:[_]{3,}|\\$[A-Za-z_][A-Za-z0-9_]*(?:\\{[^}]*\\}|\\[[^\\]]*\\])?)\\]\\*?",
+          "name": "variable.other.pgml-answer.pg"
+        },
+        {
+          "begin": "\\[@",
+          "end": "@\\]\\*?",
+          "name": "meta.embedded.inline.perl.pgml.pg",
+          "patterns": [
+            { "include": "#strings" },
+            { "include": "#variables" },
+            { "include": "#mathobject-constructors" },
+            { "include": "#function-calls" }
+          ]
+        },
+        {
+          "begin": "\\[:",
+          "end": ":\\]\\*?",
+          "name": "markup.inline.math.pgml.pg"
+        },
+        {
+          "begin": "\\[``",
+          "end": "``\\]",
+          "name": "markup.inline.math.display.pgml.pg"
+        },
+        {
+          "begin": "\\[`",
+          "end": "`\\]",
+          "name": "markup.inline.math.inline.pgml.pg"
+        },
+        {
+          "begin": "\\[%",
+          "end": "%\\]",
+          "name": "comment.block.pgml.pg"
+        },
+        {
+          "begin": "\\[!",
+          "end": "!\\]\\([^)]*\\)",
+          "name": "markup.inline.image.pgml.pg"
+        },
+        {
+          "comment": "Bold: **text**",
+          "match": "\\*\\*[^*\\n]+\\*\\*",
+          "name": "markup.bold.pgml.pg"
+        },
+        {
+          "comment": "Italic: *text* (single-asterisk)",
+          "match": "(?<![\\*\\w])\\*[^*\\n]+\\*(?!\\w)",
+          "name": "markup.italic.pgml.pg"
+        },
+        {
+          "comment": "Inline code: backticks",
+          "match": "`[^`\\n]+`",
+          "name": "markup.inline.raw.pgml.pg"
+        },
+        {
+          "comment": "Headings: lines starting with #",
+          "match": "^#+\\s.*$",
+          "name": "markup.heading.pgml.pg"
+        }
+      ]
+    },
+
+    "text-block": {
+      "comment": "Legacy BEGIN_TEXT / END_TEXT blocks. Variables interpolate with $var, math with \\(...\\).",
+      "begin": "^(BEGIN_TEXT)\\b",
+      "beginCaptures": {
+        "1": { "name": "keyword.control.text.begin.pg" }
+      },
+      "end": "^(END_TEXT)\\b",
+      "endCaptures": {
+        "1": { "name": "keyword.control.text.end.pg" }
+      },
+      "name": "meta.embedded.block.text.pg",
+      "patterns": [
+        {
+          "match": "\\\\\\([^)]*\\\\\\)",
+          "name": "markup.inline.math.inline.pg"
+        },
+        {
+          "match": "\\\\\\[[^\\]]*\\\\\\]",
+          "name": "markup.inline.math.display.pg"
+        },
+        {
+          "match": "\\$[A-Za-z_][A-Za-z0-9_]*(?:\\{[^}]*\\}|\\[[^\\]]*\\])?",
+          "name": "variable.other.interpolation.pg"
+        },
+        {
+          "match": "\\$\\{[^}]+\\}",
+          "name": "variable.other.interpolation.pg"
+        }
+      ]
+    },
+
+    "solution-block": {
+      "begin": "^(BEGIN_SOLUTION)\\b",
+      "beginCaptures": {
+        "1": { "name": "keyword.control.solution.begin.pg" }
+      },
+      "end": "^(END_SOLUTION)\\b",
+      "endCaptures": {
+        "1": { "name": "keyword.control.solution.end.pg" }
+      },
+      "name": "meta.embedded.block.solution.pg",
+      "patterns": [
+        { "include": "#text-block" },
+        {
+          "match": "\\$[A-Za-z_][A-Za-z0-9_]*",
+          "name": "variable.other.interpolation.pg"
+        }
+      ]
+    },
+
+    "hint-block": {
+      "begin": "^(BEGIN_HINT)\\b",
+      "beginCaptures": {
+        "1": { "name": "keyword.control.hint.begin.pg" }
+      },
+      "end": "^(END_HINT)\\b",
+      "endCaptures": {
+        "1": { "name": "keyword.control.hint.end.pg" }
+      },
+      "name": "meta.embedded.block.hint.pg",
+      "patterns": [
+        {
+          "match": "\\$[A-Za-z_][A-Za-z0-9_]*",
+          "name": "variable.other.interpolation.pg"
+        }
+      ]
+    },
+
+    "answer-checkers": {
+      "comment": "ANS, NAMED_ANS, WEIGHTED_ANS, and the older num_cmp/str_cmp family.",
+      "patterns": [
+        {
+          "match": "\\b(ANS|NAMED_ANS|WEIGHTED_ANS|RECORD_ANS_NAME|NAMED_WEIGHTED_ANS|installProblemGrader|install_problem_grader)\\b(?=\\s*\\()",
+          "name": "support.function.answer.pg"
+        },
+        {
+          "match": "\\b(num_cmp|str_cmp|fun_cmp|radio_cmp|checkbox_cmp|interval_cmp|matrix_cmp|vec_cmp|number_list_cmp|std_num_cmp|num_rel_cmp|std_num_str_cmp|adaptive_compare)\\b(?=\\s*\\()",
+          "name": "support.function.answer-checker.pg"
+        },
+        {
+          "match": "\\b(\\w+)->(cmp)\\b",
+          "captures": {
+            "1": { "name": "variable.other.pg" },
+            "2": { "name": "support.function.method.cmp.pg" }
+          }
+        }
+      ]
+    },
+
+    "mathobject-constructors": {
+      "comment": "The MathObject constructors — these are the workhorses of any modern PG problem.",
+      "match": "\\b(Compute|Real|Complex|Fraction|Formula|Vector|Point|Matrix|Interval|Set|Union|List|String|Inequality|Currency|Quaternion|InfiniteInterval|MathObject|Parser|Value)\\b(?=\\s*[\\(\"'])",
+      "name": "support.class.mathobject.pg"
+    },
+
+    "context-calls": {
+      "comment": "Context(\"Numeric\"), Context()->variables->add(...), Context()->flags->set(...), etc.",
+      "patterns": [
+        {
+          "match": "\\b(Context)\\b(?=\\s*[\\(\\->])",
+          "name": "support.function.context.pg"
+        },
+        {
+          "comment": "Method chains off Context()->",
+          "match": "->(variables|flags|operators|functions|parens|lists|strings|constants|reduction|texStrings|normalStrings)\\b",
+          "captures": {
+            "1": { "name": "support.type.context-attr.pg" }
+          }
+        }
+      ]
+    },
+
+    "pg-builtins": {
+      "comment": "Common PG / PGstandard functions that appear in nearly every problem.",
+      "patterns": [
+        {
+          "match": "\\b(random|non_zero_random|list_random|random_subset|random_pairs|random_permutation|PGsort|PGrandom)\\b(?=\\s*\\()",
+          "name": "support.function.random.pg"
+        },
+        {
+          "match": "\\b(image|caption|tikz_image|insertGraph|alias|htmlLink|helpLink|knowlLink|knowl|MODES|MODES_HASH|EV2|EV3|EV3P|KEYWORDS|TEXT|HEADER_TEXT|TEXT_DEFINITION)\\b(?=\\s*\\()",
+          "name": "support.function.pg-utility.pg"
+        },
+        {
+          "match": "\\b(beginproblem|init_problem|problemtemplate|PG_answer_eval|setProblemSeed)\\b(?=\\s*\\()",
+          "name": "support.function.pg-utility.pg"
+        },
+        {
+          "match": "\\b(sin|cos|tan|asin|acos|atan|atan2|sinh|cosh|tanh|exp|log|ln|sqrt|abs|sgn|floor|ceil|round|min|max|sum|product|gcd|lcm|fact|C|P)\\b(?=\\s*\\()",
+          "name": "support.function.math.pg"
+        },
+        {
+          "match": "\\b(pi|e|i|inf|infinity|Infinity|NONE|DNE)\\b",
+          "name": "constant.language.math.pg"
+        }
+      ]
+    },
+
+    "perl-keywords": {
+      "patterns": [
+        {
+          "match": "\\b(my|our|local|use|no|sub|return|if|elsif|else|unless|while|until|for|foreach|do|last|next|redo|die|warn|print|printf|sprintf|require|package|defined|undef|exists|delete|wantarray|ref|bless|eval|map|grep|sort|reverse|join|split|push|pop|shift|unshift|keys|values|each|scalar|length|chomp|chop|lc|uc|lcfirst|ucfirst|substr|index|rindex|chr|ord|hex|oct|int|sprintf|qw|qr|q|qq)\\b",
+          "name": "keyword.other.perl.pg"
+        },
+        {
+          "match": "\\b(BEGIN|END|INIT|CHECK|UNITCHECK)\\b",
+          "name": "keyword.control.phase.pg"
+        }
+      ]
+    },
+
+    "strings": {
+      "patterns": [
+        {
+          "name": "string.quoted.double.pg",
+          "begin": "\"",
+          "end": "\"",
+          "patterns": [
+            {
+              "match": "\\\\.",
+              "name": "constant.character.escape.pg"
+            },
+            {
+              "match": "\\$[A-Za-z_][A-Za-z0-9_]*(?:\\{[^}]*\\}|\\[[^\\]]*\\])?",
+              "name": "variable.other.interpolation.pg"
+            },
+            {
+              "match": "\\$\\{[^}]+\\}",
+              "name": "variable.other.interpolation.pg"
+            },
+            {
+              "match": "@[A-Za-z_][A-Za-z0-9_]*",
+              "name": "variable.other.interpolation.pg"
+            }
+          ]
+        },
+        {
+          "name": "string.quoted.single.pg",
+          "begin": "'",
+          "end": "'",
+          "patterns": [
+            {
+              "match": "\\\\['\\\\]",
+              "name": "constant.character.escape.pg"
+            }
+          ]
+        },
+        {
+          "comment": "qq{...}, qq(...), qq[...], qq<...>",
+          "begin": "\\bqq\\s*([\\(\\[\\{<])",
+          "end": "[\\)\\]\\}>]",
+          "name": "string.quoted.other.qq.pg",
+          "patterns": [
+            { "include": "#variables" }
+          ]
+        },
+        {
+          "begin": "\\bq\\s*([\\(\\[\\{<])",
+          "end": "[\\)\\]\\}>]",
+          "name": "string.quoted.other.q.pg"
+        }
+      ]
+    },
+
+    "heredoc": {
+      "comment": "Perl heredocs — used occasionally for large blocks of text.",
+      "patterns": [
+        {
+          "begin": "<<\\s*[\"]([A-Z_]+)[\"]\\s*;",
+          "end": "^\\1\\s*$",
+          "beginCaptures": {
+            "1": { "name": "punctuation.definition.string.heredoc.pg" }
+          },
+          "name": "string.unquoted.heredoc.pg",
+          "patterns": [
+            { "include": "#variables" }
+          ]
+        }
+      ]
+    },
+
+    "numbers": {
+      "patterns": [
+        {
+          "match": "\\b0x[0-9A-Fa-f]+\\b",
+          "name": "constant.numeric.hex.pg"
+        },
+        {
+          "match": "\\b\\d+\\.\\d+(?:[eE][+-]?\\d+)?\\b",
+          "name": "constant.numeric.float.pg"
+        },
+        {
+          "match": "\\b\\d+(?:[eE][+-]?\\d+)?\\b",
+          "name": "constant.numeric.integer.pg"
+        }
+      ]
+    },
+
+    "variables": {
+      "patterns": [
+        {
+          "comment": "Scalar variables: $foo, $foo[0], $foo{key}",
+          "match": "\\$#?[A-Za-z_][A-Za-z0-9_]*",
+          "name": "variable.other.scalar.pg"
+        },
+        {
+          "comment": "Array variables: @foo",
+          "match": "@[A-Za-z_][A-Za-z0-9_]*",
+          "name": "variable.other.array.pg"
+        },
+        {
+          "comment": "Hash variables: %foo",
+          "match": "%[A-Za-z_][A-Za-z0-9_]*",
+          "name": "variable.other.hash.pg"
+        },
+        {
+          "comment": "Special Perl variables",
+          "match": "\\$[_0-9!@#$%^&*()=+\\-/\\\\,.;:?<>]",
+          "name": "variable.language.special.pg"
+        }
+      ]
+    },
+
+    "operators": {
+      "patterns": [
+        {
+          "comment": "Multi-char operators must come before single-char ones so they win.",
+          "match": "(->)",
+          "name": "keyword.operator.arrow.pg"
+        },
+        {
+          "match": "(=>)",
+          "name": "keyword.operator.fat-comma.pg"
+        },
+        {
+          "match": "(==|!=|<=>|<=|>=|<|>|eq|ne|lt|gt|le|ge|cmp)",
+          "name": "keyword.operator.comparison.pg"
+        },
+        {
+          "match": "(\\+=|-=|\\*=|/=|\\.=|\\|\\|=|//=)",
+          "name": "keyword.operator.assignment.pg"
+        },
+        {
+          "match": "(\\*\\*|\\+|-|\\*|/|%|\\.|\\bx\\b)",
+          "name": "keyword.operator.arithmetic.pg"
+        },
+        {
+          "match": "(=)",
+          "name": "keyword.operator.assignment.pg"
+        },
+        {
+          "match": "(&&|\\|\\||!|\\band\\b|\\bor\\b|\\bnot\\b|\\bxor\\b)",
+          "name": "keyword.operator.logical.pg"
+        }
+      ]
+    },
+
+    "function-calls": {
+      "comment": "Generic identifier followed by '(' — picks up user-defined and macro functions not covered above.",
+      "match": "\\b([A-Za-z_][A-Za-z0-9_]*)\\b(?=\\s*\\()",
+      "name": "entity.name.function.pg"
+    }
+  }
+}

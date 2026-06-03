@@ -1,0 +1,38 @@
+# Builds and runs the WeBWorK PG renderer locally for the VS Code extension.
+#
+# QUICK START:
+#     ./setup.sh
+# That script clones the renderer + OPL source, builds the image, and starts it.
+#
+# After the first setup, day-to-day operation is just:
+#     docker compose up -d        # start the renderer
+#     docker compose down         # stop it
+#     docker compose logs -f      # tail the logs
+#
+# Architecture notes:
+#   * We build from the renderer source (./renderer-src), which setup.sh clones
+#     from github.com/openwebwork/renderer.
+#   * The Open Problem Library is bind-mounted at runtime from ./opl, which
+#     setup.sh also clones. This is the workflow the renderer README documents
+#     directly. (We deliberately avoid Dockerfile_with_OPL because its
+#     tarball-extraction step is broken for the OPL's current 'main' default
+#     branch.)
+#   * MOJO_MODE=development surfaces PG compile errors in the rendered output.
+
+services:
+  pg-renderer:
+    build:
+      context: ./renderer-src
+      dockerfile: Dockerfile
+    image: webwork-pg-renderer:local
+    container_name: webwork-pg-renderer
+    ports:
+      - "3000:3000"
+    environment:
+      MOJO_MODE: development
+    volumes:
+      - ./opl:/usr/app/webwork-open-problem-library
+      # Uncomment to expose your own templates directory at /usr/app/private,
+      # so problems can `loadMacros("private/your-macro.pl")`:
+      # - /absolute/path/to/your/templates:/usr/app/private
+    restart: unless-stopped

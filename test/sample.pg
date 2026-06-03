@@ -1,0 +1,54 @@
+## DESCRIPTION
+## Sample PG problem for grammar testing
+## ENDDESCRIPTION
+
+## KEYWORDS('algebra', 'sample')
+
+DOCUMENT();
+
+loadMacros(
+    "PGstandard.pl",
+    "MathObjects.pl",
+    "PGML.pl",
+    "PGcourse.pl",
+);
+
+TEXT(beginproblem());
+
+Context("Numeric");
+Context()->variables->add(y => "Real");
+Context()->flags->set(reduceConstants => 0);
+
+# Random parameters
+$a = random(2, 9, 1);
+$b = non_zero_random(-5, 5, 1);
+$c = $a * $b;
+
+# Build a formula MathObject
+$f = Formula("$a * x + $b");
+$answer = Compute("$c");
+
+# Array of choices
+@choices = ("apple", "banana", "cherry");
+%hash = (key1 => "value1", key2 => 42);
+
+BEGIN_PGML
+Solve for [`x`] in the equation:
+
+>> [``$a x + $b = 0``] <<
+
+The answer is [`x = `][_____]{$answer}.
+
+If [`f(x) = [$f]`], then [`f(1) = `][_____]{Compute("$a + $b")}.
+
+*Hint:* try isolating [`x`].
+
+[@ if ($a > 5) { "Note: [`a`] is large." } @]*
+END_PGML
+
+BEGIN_PGML_SOLUTION
+Subtract [`[$b]`] from both sides:
+[``[$a] x = -[$b]``]
+END_PGML_SOLUTION
+
+ENDDOCUMENT();
