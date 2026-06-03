@@ -216,5 +216,5 @@ talks to.
 
 ## Author
 
-Built by Erich (Westminster College, Department of Mathematics and Physics)
+Built by Dr. Erich Jauch(Westminster College, Department of Mathematics and Physics)
 as a tool for authoring PG problems without a live WeBWorK server.
